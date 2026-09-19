@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BoldLock</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+    body {
+      width: 440px;
+      background: #0f172a;
+      color: #f8fafc;
+      padding: 14px;
+      font-size: 13px;
+    }
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      border-bottom: 1px solid #1e293b;
+      padding-bottom: 10px;
+    }
+    .logo-area {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .logo-icon {
+      width: 24px;
+      height: 24px;
+      background: linear-gradient(135deg, #0a66c2, #4f46e5);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: bold;
+      font-size: 13px;
+    }
+    .brand-title {
+      font-weight: 700;
+      font-size: 14px;
+      color: #ffffff;
+    }
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      background: #1e293b;
+      padding: 6px;
+      border-radius: 8px;
+      margin-bottom: 10px;
+    }
+    .btn {
+      background: #334155;
+      color: #e2e8f0;
+      border: 1px solid #475569;
+      border-radius: 5px;
+      padding: 4px 7px;
+      font-size: 11px;
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 0.15s ease;
+    }
+    .btn:hover {
+      background: #475569;
+      color: #ffffff;
+    }
+    .btn-primary {
+      background: #0a66c2;
+      border-color: #0a66c2;
+      color: white;
+      font-weight: 600;
+      padding: 8px 14px;
+      width: 100%;
+      border-radius: 8px;
+      margin-top: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .btn-primary:hover {
+      background: #004182;
+    }
+    textarea {
+      width: 100%;
+      height: 160px;
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      color: #f8fafc;
+      padding: 10px;
+      font-size: 13px;
+      resize: vertical;
+      outline: none;
+      line-height: 1.45;
+    }
+    textarea:focus {
+      border-color: #0a66c2;
+      box-shadow: 0 0 0 2px rgba(10, 102, 194, 0.2);
+    }
+    .stats-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 8px;
+      font-size: 11px;
+      color: #94a3b8;
+    }
+    .badge {
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 600;
+      font-size: 10px;
+    }
+    .badge-safe {
+      background: rgba(16, 185, 129, 0.15);
+      color: #34d399;
+    }
+    .badge-warn {
+      background: rgba(245, 158, 11, 0.15);
+      color: #fbbf24;
+    }
+    .badge-danger {
+      background: rgba(244, 63, 94, 0.15);
+      color: #fb7185;
+    }
+    .hook-alert {
+      margin-top: 8px;
+      padding: 6px 10px;
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid #334155;
+      border-radius: 6px;
+      font-size: 11px;
+      color: #cbd5e1;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .toast {
+      position: fixed;
+      bottom: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #059669;
+      color: white;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="logo-area">
+      <div class="logo-icon">B</div>
+      <div>
+        <span class="brand-title">BoldLock</span>
+      </div>
+    </div>
+    <span style="font-size: 11px; color: #38bdf8;">v1.0</span>
+  </div>
+
+  <!-- Formatting Toolbar -->
+  <div class="toolbar">
+    <button class="btn" data-style="sansBold">𝗕 Bold</button>
+    <button class="btn" data-style="serifBold">𝐁 Serif</button>
+    <button class="btn" data-style="italic">𝘐 Italic</button>
+    <button class="btn" data-style="monospace">𝙲 Code</button>
+    <button class="btn" data-style="underline">U̲ Underline</button>
+    <button class="btn" data-style="strike">S̶ Strike</button>
+    <button class="btn" data-bullet="• ">•</button>
+    <button class="btn" data-bullet="➔ ">➔</button>
+    <button class="btn" data-bullet="✔ ">✔</button>
+    <button class="btn" id="btn-unformat" style="margin-left: auto;">Aa</button>
+  </div>
+
+  <textarea id="popup-editor" placeholder="What do you want to talk about?"></textarea>
+
+  <div class="stats-bar">
+    <div>
+      <span id="stat-chars">0</span> / 3,000 chars
+    </div>
+    <div>
+      SEO Density: <span id="stat-density-badge" class="badge badge-safe">0% Safe</span>
+    </div>
+    <div>
+      <span id="stat-words">0 words</span>
+    </div>
+  </div>
+
+  <div id="hook-alert" class="hook-alert">
+    <span>📱 <strong>Mobile Hook:</strong> First 3 lines / 210 chars appear before "...see more"</span>
+  </div>
+
+  <button id="btn-copy-popup" class="btn-primary">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/>
+    </svg>
+    Copy for LinkedIn
+  </button>
+
+  <div id="popup-toast" class="toast">Copied to clipboard! 🚀</div>
+
+  <script type="module" src="./popup.js"></script>
+</body>
+</html>
