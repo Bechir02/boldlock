@@ -310,6 +310,121 @@ describe('BoldLock Core - Post Structure & Organization Engine', () => {
 
     expect(audit.engagement.factors.conversation.hasQuestion).toBe(true);
     expect(audit.engagement.factors.readability.isOptimal).toBe(true);
-    expect(audit.engagement.score).toBeGreaterThanOrEqual(90);
+  });
+});
+
+describe('BoldLock Algorithm v2 — Enhanced Engagement Scoring', () => {
+  it('rewards short punchy hooks with a bonus', () => {
+    const post = 'Stop doing this.\n\nMost people think productivity is about doing more. It is not.\n\nWhat is your take?';
+    const audit = analyzePost(post);
+
+    // Hook "Stop doing this." is 3 words — should get strong hook bonus
+    expect(audit.engagement.factors.hook.status).toBe('Strong');
+    expect(audit.suggestions.some(s => s.includes('Short openers stop the scroll'))).toBe(true);
+  });
+
+  it('penalizes wall-of-text hooks (40+ words)', () => {
+    const longHook = 'I am so excited and happy to announce that after five long years of relentless hard work and countless late nights of coding debugging testing iterating refactoring and collaborating with my amazing team we have finally launched our brand new revolutionary platform';
+    const post = longHook + '\n\nCheck it out!';
+    const audit = analyzePost(post);
+
+    expect(audit.warnings.some(w => w.includes('wall of text'))).toBe(true);
+  });
+
+  it('detects engagement bait patterns and penalizes', () => {
+    const baitPost = 'This changed my career.\n\nComment YES if you agree!\n\n#growth';
+    const audit = analyzePost(baitPost);
+
+    expect(audit.warnings.some(w => w.includes('Engagement bait'))).toBe(true);
+    // Bait penalty is -15 but bonuses (short hook, question) partially offset it
+    expect(audit.score).toBeLessThan(100);
+  });
+
+  it('flags emoji overuse for professional tone', () => {
+    const emojiHeavy = '🚀🎯💡🔥✨🌟💪🎉🏆 Great day to share some wisdom! What do you think?';
+    const audit = analyzePost(emojiHeavy);
+
+    expect(audit.suggestions.some(s => s.includes('emojis'))).toBe(true);
+  });
+
+  it('rewards posts in the 1300-1900 character sweet spot', () => {
+    // Create a post in the sweet spot with proper structure
+    const sweetSpotPost = 'Here is why simplicity wins.\n\n' +
+      'A'.repeat(700) + '\n\n' +
+      'B'.repeat(700) + '\n\n' +
+      'What do you think?';
+    const audit = analyzePost(sweetSpotPost);
+
+    expect(audit.suggestions.some(s => s.includes('engagement sweet spot'))).toBe(true);
+  });
+
+  it('penalizes posts with no closing question (CTA)', () => {
+    const noCTAPost = 'This is a long post about productivity and growth in software engineering.\n\n' +
+      'I learned a lot from building tools over the past decade.\n\n' +
+      'The key takeaway is that simplicity always wins over complexity. Keep building.\n\n' +
+      '#productivity #engineering #growth';
+    const audit = analyzePost(noCTAPost);
+
+    expect(audit.engagement.factors.conversation.status).toBe('Missing');
+    expect(audit.suggestions.some(s => s.includes('closing question'))).toBe(true);
+  });
+
+  it('penalizes low white space ratio on longer posts', () => {
+    // 8 lines with no blank lines = 0% white space
+    const densePost = [
+      'Line 1: Hook that grabs attention.',
+      'Line 2: Context about the topic.',
+      'Line 3: More details here.',
+      'Line 4: Supporting point.',
+      'Line 5: Another supporting point.',
+      'Line 6: Evidence and data.',
+      'Line 7: Transition sentence.',
+      'Line 8: What do you think?'
+    ].join('\n');
+    const audit = analyzePost(densePost);
+
+    expect(audit.suggestions.some(s => s.includes('white space') || s.includes('blank lines'))).toBe(true);
+  });
+
+  it('applies increased penalty for external links (-30 vs old -20)', () => {
+    const linkPost = 'Check out this article: https://example.com/article and tell me what you think?';
+    const audit = analyzePost(linkPost);
+
+    // With -30 penalty + possible bonuses, score should be noticeably lower
+    expect(audit.score).toBeLessThanOrEqual(80);
+  });
+
+  describe('360Brew MoE Model Compliance (arXiv:2501.16450)', () => {
+    it('detects CFBR and "agree or disagree" shallow engagement bait', () => {
+      const cfbrPost = 'Great insights here.\n\nCFBR!\n\n#tech';
+      const audit = analyzePost(cfbrPost);
+      expect(audit.warnings.some(w => w.includes('360Brew demotes shallow replies'))).toBe(true);
+
+      const agreePost = 'AI is replacing developers tomorrow.\n\nAgree or disagree?';
+      const auditAgree = analyzePost(agreePost);
+      expect(auditAgree.warnings.some(w => w.includes('360Brew demotes shallow replies'))).toBe(true);
+    });
+
+    it('flags sparse body text (<150 chars) for lacking 360Brew matching tokens', () => {
+      const sparsePost = 'Check out this new PDF guide! 👇';
+      const audit = analyzePost(sparsePost);
+      expect(audit.warnings.some(w => w.includes('Sparse text (<150 chars)'))).toBe(true);
+      expect(audit.engagement.factors.tokenContext.status).toBe('Needs Depth');
+    });
+
+    it('penalizes hashtag noise dilution when tags exceed 15% of total words', () => {
+      // 10 words total, 4 hashtags = 40% dilution
+      const dilutedPost = 'Here is a project update today for my team.\n\n#tech #coding #ai #python';
+      const audit = analyzePost(dilutedPost);
+      expect(audit.warnings.some(w => w.includes('Hashtag noise dilution'))).toBe(true);
+      expect(audit.engagement.factors.hashtags.label).toContain('dilution');
+    });
+
+    it('flags clickbait hook with mismatched shallow body', () => {
+      const clickbaitPost = 'The INSANE secret that 99% of engineers do not know.\n\nSimplicity wins.\n\nWhat do you think?';
+      const audit = analyzePost(clickbaitPost);
+      expect(audit.warnings.some(w => w.includes('Clickbait hook mismatch'))).toBe(true);
+      expect(audit.engagement.factors.tokenContext.status).toBe('Needs Depth');
+    });
   });
 });

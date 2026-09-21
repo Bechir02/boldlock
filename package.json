@@ -1,7 +1,7 @@
 {
-  "name": "postcraft",
-  "version": "1.0.0",
-  "description": "The Open-Source LinkedIn Post Formatter, SEO Health Linter & Feed Studio",
+  "name": "boldlock",
+  "version": "1.2.0",
+  "description": "The LinkedIn Post Formatter, 360Brew Health Linter & Live Studio",
   "type": "module",
   "main": "src/core/index.js",
   "module": "src/core/index.js",

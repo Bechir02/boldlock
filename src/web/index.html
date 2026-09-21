@@ -333,8 +333,8 @@
             <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"/></svg>
           </div>
           <div>
-            <h3 class="text-base font-bold text-gray-900">LinkedIn Algorithm Health</h3>
-            <p class="text-xs text-gray-500">Real-time breakdown based on LinkedIn's ranking signals.</p>
+            <h3 class="text-base font-bold text-gray-900">LinkedIn 360Brew Algorithm Health</h3>
+            <p class="text-xs text-gray-500">Real-time breakdown based on LinkedIn's 150B MoE model (arXiv:2501.16450).</p>
           </div>
         </div>
         <button id="btn-close-engagement" class="text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-100 transition">
@@ -345,7 +345,7 @@
       <!-- Score Header -->
       <div class="p-3.5 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-100 flex items-center justify-between mb-3">
         <div>
-          <span class="text-[10px] font-semibold text-blue-600 uppercase tracking-wider">Overall Algorithm Score</span>
+          <span class="text-[10px] font-semibold text-blue-600 uppercase tracking-wider">360Brew Algorithm Score</span>
           <div class="flex items-baseline gap-1.5 mt-0.5">
             <span id="coach-score" class="text-2xl font-extrabold text-gray-900">100%</span>
             <span id="coach-status" class="text-xs font-semibold text-emerald-600">High Reach 🚀</span>
@@ -382,7 +382,19 @@
           </div>
         </div>
 
-        <!-- Factor 3: Link Safety -->
+        <!-- Factor 3: 360Brew Token Context -->
+        <div class="p-2.5 rounded-xl border border-gray-100 bg-gray-50/70 flex items-start gap-2.5">
+          <span class="text-base shrink-0">🧠</span>
+          <div class="flex-1">
+            <div class="flex items-center justify-between">
+              <span class="font-semibold text-gray-800">360Brew Semantic Context</span>
+              <span id="factor-context-status" class="font-semibold text-emerald-600 text-[11px]">Optimal</span>
+            </div>
+            <p id="factor-context-detail" class="text-gray-500 mt-0.5 text-[11px]">Ensure post has sufficient body tokens (>150 chars) and hook-body consistency.</p>
+          </div>
+        </div>
+
+        <!-- Factor 4: Link Safety -->
         <div class="p-2.5 rounded-xl border border-gray-100 bg-gray-50/70 flex items-start gap-2.5">
           <span class="text-base shrink-0">🔗</span>
           <div class="flex-1">
@@ -394,7 +406,7 @@
           </div>
         </div>
 
-        <!-- Factor 4: Discussion Driver -->
+        <!-- Factor 5: Discussion Driver -->
         <div class="p-2.5 rounded-xl border border-gray-100 bg-gray-50/70 flex items-start gap-2.5">
           <span class="text-base shrink-0">💬</span>
           <div class="flex-1">
@@ -402,19 +414,19 @@
               <span class="font-semibold text-gray-800">Comment Driver (2x Weight)</span>
               <span id="factor-comment-status" class="font-semibold text-blue-600 text-[11px]">Optional</span>
             </div>
-            <p id="factor-comment-detail" class="text-gray-500 mt-0.5 text-[11px]">Comments carry 2x more algorithm weight than likes. Ending with an open question sparks conversation.</p>
+            <p id="factor-comment-detail" class="text-gray-500 mt-0.5 text-[11px]">Substantive comments feed in-context learning. Avoid shallow "agree?" bait.</p>
           </div>
         </div>
 
-        <!-- Factor 5: Hashtags -->
+        <!-- Factor 6: Hashtags -->
         <div class="p-2.5 rounded-xl border border-gray-100 bg-gray-50/70 flex items-start gap-2.5">
           <span class="text-base shrink-0">🏷️</span>
           <div class="flex-1">
             <div class="flex items-center justify-between">
-              <span class="font-semibold text-gray-800">Hashtag Optimization</span>
+              <span class="font-semibold text-gray-800">Hashtag Noise Filter</span>
               <span id="factor-hash-status" class="font-semibold text-emerald-600 text-[11px]">Optimal</span>
             </div>
-            <p id="factor-hash-detail" class="text-gray-500 mt-0.5 text-[11px]">1–3 targeted hashtags help categorize your post without spam filtering.</p>
+            <p id="factor-hash-detail" class="text-gray-500 mt-0.5 text-[11px]">1–3 targeted hashtags. Avoid hashtag dumps that dilute topic classification.</p>
           </div>
         </div>
       </div>

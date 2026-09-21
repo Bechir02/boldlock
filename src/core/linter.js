@@ -55,11 +55,44 @@ export function analyzePost(text = '') {
     }
   }
 
-  // Conversation trigger (ends with question mark)
+  // Conversation trigger (ends with question mark, possibly followed by hashtags)
   const trimmed = text.trim();
   const endsWithQuestion = /\?\s*(?:#[^\s#]+(?:\s+#[^\s#]+)*)?\s*$/m.test(trimmed);
 
-  // 6. Overall Health & Engagement Score (0 - 100) and Recommendations
+  // 6. Hook strength analysis
+  const firstLine = lines[0] || '';
+  const hookWordCount = firstLine.trim().split(/\s+/).filter(Boolean).length;
+  const hookHasCuriosityPattern = /\b(here'?s\s+why|the\s+truth|stop\s+doing|nobody|what\s+if|I\s+was\s+wrong|unpopular\s+opinion|hot\s+take|myth|secret|mistake|lesson|changed\s+my|thought\s+I|turns\s+out)\b/i.test(firstLine)
+    || /^\d+/.test(firstLine.trim())  // starts with a number
+    || /\?$/.test(firstLine.trim());  // hook is a question
+  const hookIsWallOfText = hookWordCount > 40;
+
+  // 7. 360Brew Engagement Bait & Low-Information Reply Detection (arXiv:2501.16450)
+  const engagementBaitPatterns = /\b(comment\s+(yes|below|if|for\s+reach)|like\s+if\s+you|share\s+this|tag\s+someone|repost\s+if|follow\s+me\s+for|drop\s+a|type\s+yes|say\s+yes|cfbr|agree\s+or\s+disagree|thoughts\?|one\s+word)\b/i;
+  const hasEngagementBait = engagementBaitPatterns.test(text);
+
+  // 8. 360Brew Token Context Depth & Sparse Text Warning (Anti-Pattern #3)
+  const isSparseTokens = charLength > 0 && charLength < 150;
+
+  // 9. 360Brew Hashtag Dilution (Anti-Pattern #2: noise tokens >15% of total words)
+  const hashtagWordsCount = hashtagMetrics.count;
+  const hashtagDilutionRatio = wordCount > 0 ? Math.round((hashtagWordsCount / wordCount) * 100) : 0;
+  const isHashtagDiluted = hashtagDilutionRatio > 15 && hashtagMetrics.count >= 4;
+
+  // 10. 360Brew Clickbait Mismatch (Anti-Pattern #4: sensational hook with shallow body)
+  const clickbaitHookPattern = /\b(insane|shocking|you\s+won'?t\s+believe|mind-blowing|magic\s+trick|hidden\s+secret)\b/i;
+  const hasClickbaitHook = clickbaitHookPattern.test(firstLine);
+  const hasMismatchedHook = hasClickbaitHook && charLength < 350;
+
+  // 11. Emoji count
+  const emojiMatches = text.match(/[\p{Extended_Pictographic}]/gu) || [];
+  const emojiCount = emojiMatches.length;
+
+  // 12. White space ratio (blank lines / total lines)
+  const blankLineCount = lines.filter(l => l.trim().length === 0).length;
+  const whiteSpaceRatio = lineCount > 1 ? Math.round((blankLineCount / lineCount) * 100) : 0;
+
+  // 13. Overall Health & Engagement Score (0 - 100) and Recommendations
   const { score, status, warnings, suggestions, engagement } = calculateHealthScore({
     charLength,
     unicodeDensity: unicodeMetrics.density,
@@ -69,7 +102,16 @@ export function analyzePost(text = '') {
     longParagraphCount,
     endsWithQuestion,
     lineCount,
-    wordCount
+    wordCount,
+    hookWordCount,
+    hookHasCuriosityPattern,
+    hookIsWallOfText,
+    hasEngagementBait,
+    isSparseTokens,
+    isHashtagDiluted,
+    hasMismatchedHook,
+    emojiCount,
+    whiteSpaceRatio
   });
 
   return {
@@ -252,6 +294,7 @@ function calculateCutoff(text, lines) {
 
 /**
  * Calculates overall algorithm health score and provides actionable guidance.
+ * Enhanced with 2026 LinkedIn algorithm signals.
  */
 function calculateHealthScore({
   charLength,
@@ -260,11 +303,24 @@ function calculateHealthScore({
   cutoff,
   hasExternalLinks = false,
   longParagraphCount = 0,
-  endsWithQuestion = false
+  endsWithQuestion = false,
+  lineCount = 0,
+  wordCount = 0,
+  hookWordCount = 0,
+  hookHasCuriosityPattern = false,
+  hookIsWallOfText = false,
+  hasEngagementBait = false,
+  isSparseTokens = false,
+  isHashtagDiluted = false,
+  hasMismatchedHook = false,
+  emojiCount = 0,
+  whiteSpaceRatio = 0
 }) {
   let score = 100;
   const warnings = [];
   const suggestions = [];
+
+  // ── PENALTIES ──────────────────────────────────────────────────
 
   // 1. Hard blocker: over 3,000 characters
   if (charLength > LINKEDIN_MAX_CHARS) {
@@ -272,56 +328,135 @@ function calculateHealthScore({
     warnings.push(`Post exceeds LinkedIn limit (${charLength}/${LINKEDIN_MAX_CHARS} chars).`);
   }
 
-  // 2. Algorithm Reach Penalty: External links in post body (40-60% reach suppression)
+  // 2. External links — 40-60% reach suppression
   if (hasExternalLinks) {
-    score -= 20;
-    warnings.push('External link in body triggers a 40–60% LinkedIn reach penalty. Move link to the 1st comment!');
+    score -= 30;
+    warnings.push('External link in body triggers a 40–60% reach penalty. Move link to the 1st comment!');
   }
 
-  // 3. Dense walls of text: Hurts mobile dwell time
+  // 3. Dense walls of text
   if (longParagraphCount > 0) {
     score -= 10;
-    suggestions.push(`Break up ${longParagraphCount} dense block(s) into 1–2 sentence paragraphs to increase reader dwell time.`);
+    suggestions.push(`Break up ${longParagraphCount} dense block(s) into 1–2 sentence paragraphs for dwell time.`);
   }
 
-  // 4. Unicode density penalty
+  // 4. Unicode density
   if (unicodeDensity > 25) {
     score -= 25;
-    warnings.push(`High Unicode density (${unicodeDensity}%). Exceeding 25% impairs screen-readers and LinkedIn SEO indexing.`);
+    warnings.push(`High Unicode density (${unicodeDensity}%). Exceeding 25% impairs screen-readers and 360Brew tokenization.`);
   } else if (unicodeDensity > 15) {
     score -= 10;
-    suggestions.push(`Unicode density is moderate (${unicodeDensity}%). Keep styled text limited to key hooks and bullet points.`);
+    suggestions.push(`Unicode density is moderate (${unicodeDensity}%). Keep styling to headers and key phrases.`);
   } else if (unicodeDensity > 0) {
-    suggestions.push(`Unicode styling is optimal (${unicodeDensity}%). Great accessibility & searchability.`);
+    suggestions.push(`Unicode styling is optimal (${unicodeDensity}%) ✓`);
   }
 
-  // 5. Broken hashtags check
+  // 5. Broken hashtags
   if (hashtags.hasBrokenTags) {
     score -= 15;
-    warnings.push(`Hashtags contain styled Unicode: ${hashtags.brokenTags.join(', ')}. LinkedIn algorithms cannot index formatted hashtags!`);
+    warnings.push(`Hashtags contain styled Unicode: ${hashtags.brokenTags.join(', ')}. LinkedIn can't index formatted hashtags!`);
   }
 
-  // 6. Hashtag count (2026: 1-3 targeted hashtags optimal)
-  if (hashtags.count > 5) {
+  // 6. Hashtag count & 360Brew noise dilution
+  if (isHashtagDiluted) {
     score -= 10;
-    suggestions.push(`You have ${hashtags.count} hashtags. LinkedIn recommends 1–3 focused hashtags to avoid spam filtering.`);
-  } else if (hashtags.count === 0) {
-    suggestions.push(`Consider adding 1–3 relevant hashtags at the bottom to boost discovery.`);
+    warnings.push('Hashtag noise dilution: tags make up >15% of post tokens. Dilutes 360Brew topic classification.');
+  } else if (hashtags.count > 5) {
+    score -= 10;
+    suggestions.push(`${hashtags.count} hashtags detected. 360Brew recommends 1–3 focused hashtags.`);
+  } else if (hashtags.count === 0 && charLength > 100) {
+    suggestions.push('Add 1–3 relevant hashtags at the bottom to boost discovery.');
   }
 
-  // 7. Hook quality & See More click gateway
-  if (cutoff.mobile.isCutoff) {
-    if (cutoff.mobile.visibleSnippet.length < 50) {
-      suggestions.push(`Hook before "...see more" is very brief. Make sure the first 2-3 lines deliver an irresistible curiosity gap.`);
-    } else {
-      suggestions.push(`Hook is ${cutoff.mobile.visibleSnippet.length} chars (perfectly positioned before the mobile fold) ✓`);
-    }
+  // 7. Hook strength (wall of text penalty)
+  if (hookIsWallOfText) {
+    score -= 10;
+    warnings.push('First line is a wall of text (40+ words). Break your hook into a short, punchy opener.');
   }
 
-  // 8. Comment / conversation driver
+  // 8. 360Brew Engagement bait & low-information replies
+  if (hasEngagementBait) {
+    score -= 15;
+    warnings.push('Engagement bait detected (e.g., "CFBR", "comment YES", "agree or disagree"). 360Brew demotes shallow replies.');
+  }
+
+  // 9. 360Brew Sparse text token warning (Anti-Pattern #3)
+  if (isSparseTokens) {
+    score -= 15;
+    warnings.push('Sparse text (<150 chars). 360Brew needs standalone body tokens to match member interest graphs.');
+  }
+
+  // 10. 360Brew Clickbait mismatch (Anti-Pattern #4)
+  if (hasMismatchedHook) {
+    score -= 10;
+    warnings.push('Clickbait hook mismatch: sensational opening without matching explanatory body depth.');
+  }
+
+  // 11. Emoji overuse
+  if (emojiCount > 8) {
+    score -= 5;
+    suggestions.push(`${emojiCount} emojis detected. Keep to 2–3 for professional tone.`);
+  } else if (emojiCount >= 6) {
+    suggestions.push(`${emojiCount} emojis. Consider reducing to 2–3 for a cleaner look.`);
+  }
+
+  // 12. Poor white space (no breathing room)
+  if (lineCount > 5 && whiteSpaceRatio < 15) {
+    score -= 5;
+    suggestions.push('Low white space — add blank lines between paragraphs for mobile readability.');
+  }
+
+  // 13. Too short (<300 chars, but not sparse <150 which is already penalized)
+  if (charLength >= 150 && charLength < 300) {
+    score -= 5;
+    suggestions.push('Post is under 300 characters. Consider expanding for deeper dwell time.');
+  }
+
+  // 14. Too long (low completion rate)
+  if (charLength > 2500 && charLength <= LINKEDIN_MAX_CHARS) {
+    score -= 5;
+    suggestions.push('Post exceeds 2,500 chars. Consider trimming for higher reader completion rate.');
+  }
+
+  // 15. No CTA / closing question penalty
+  if (charLength > 200 && !endsWithQuestion) {
+    score -= 5;
+    suggestions.push('Add a closing question to drive comments — LinkedIn’s #1 ranking signal.');
+  }
+
+  // ── BONUSES ────────────────────────────────────────────────────
+
+  // 16. Strong hook bonus
+  if (hookWordCount > 0 && hookWordCount <= 10 && !hookIsWallOfText) {
+    score += 5;
+    suggestions.push(`Strong hook (${hookWordCount} words). Short openers stop the scroll ✓`);
+  }
+
+  // 17. Curiosity pattern bonus
+  if (hookHasCuriosityPattern) {
+    score += 5;
+    suggestions.push('Hook has a curiosity pattern — drives higher "see more" clicks ✓');
+  }
+
+  // 18. Sweet spot length bonus (1,300-1,900 chars)
+  if (charLength >= 1300 && charLength <= 1900) {
+    score += 5;
+    suggestions.push(`Post length is in the engagement sweet spot (${charLength} chars) ✓`);
+  }
+
+  // 19. Closing question bonus
   if (endsWithQuestion) {
-    suggestions.push('Ending with an open question drives comments—the LinkedIn algorithm’s #1 ranking signal! 💬');
+    score += 5;
+    suggestions.push('Closing question drives comments — the algorithm’s #1 signal! 💬 ✓');
   }
+
+  // 20. Hook length bonus (well-positioned before fold)
+  if (cutoff.mobile.isCutoff && cutoff.mobile.visibleSnippet.length >= 50 && cutoff.mobile.visibleSnippet.length <= MOBILE_CUTOFF_CHARS) {
+    score += 5;
+    suggestions.push(`Hook is ${cutoff.mobile.visibleSnippet.length} chars (well-positioned before fold) ✓`);
+  }
+
+  // ── FINAL SCORE ────────────────────────────────────────────────
 
   score = Math.max(0, Math.min(100, score));
 
@@ -329,34 +464,48 @@ function calculateHealthScore({
   if (score < 65) status = 'Needs Work ⚠️';
   else if (score < 85) status = 'Moderate 📈';
 
+  // ── ENGAGEMENT FACTORS (for Coach modal) ───────────────────────
+
+  const hookStatus = hookIsWallOfText ? 'Too Dense' : (hookWordCount <= 10 ? 'Strong' : 'Good');
+  const hookLabel = hookIsWallOfText
+    ? `${hookWordCount} words (break it up)`
+    : (hookWordCount <= 10 ? `${hookWordCount} words (punchy) ✓` : `${hookWordCount} words before fold`);
+
   const engagement = {
     score,
     status,
     factors: {
       hook: {
-        isOptimal: cutoff.mobile.isCutoff ? cutoff.mobile.visibleSnippet.length >= 50 && cutoff.mobile.visibleSnippet.length <= MOBILE_CUTOFF_CHARS : true,
-        label: cutoff.mobile.isCutoff ? `${cutoff.mobile.visibleSnippet.length} chars before fold` : 'Short (No fold)',
-        status: cutoff.mobile.isCutoff ? 'Good' : 'Optimal'
+        isOptimal: !hookIsWallOfText && hookWordCount <= 10,
+        label: hookLabel,
+        status: hookStatus
       },
       readability: {
-        isOptimal: longParagraphCount === 0,
-        label: longParagraphCount === 0 ? 'Short 1-2 sentence bites' : `${longParagraphCount} dense block(s)`,
-        status: longParagraphCount === 0 ? 'Optimal' : 'Needs Spacing'
+        isOptimal: longParagraphCount === 0 && whiteSpaceRatio >= 15,
+        label: longParagraphCount === 0
+          ? (whiteSpaceRatio >= 15 ? 'Great spacing & bites ✓' : 'Good bites, add more spacing')
+          : `${longParagraphCount} dense block(s)`,
+        status: longParagraphCount === 0 ? (whiteSpaceRatio >= 15 ? 'Optimal' : 'Needs Spacing') : 'Needs Spacing'
       },
       linkSafety: {
         isSafe: !hasExternalLinks,
-        label: hasExternalLinks ? 'Link in body (-40% reach)' : 'Zero links (Full reach)',
+        label: hasExternalLinks ? 'Link in body (−40% reach)' : 'Zero links (Full reach) ✓',
         status: hasExternalLinks ? 'Penalty Risk' : 'Protected'
       },
       hashtags: {
-        isOptimal: hashtags.count <= 5 && !hashtags.hasBrokenTags,
-        label: `${hashtags.count} tag(s)` + (hashtags.count > 5 ? ' (Too many)' : ' (Clean)'),
-        status: hashtags.count <= 5 && !hashtags.hasBrokenTags ? 'Optimal' : 'Needs Review'
+        isOptimal: hashtags.count <= 5 && !hashtags.hasBrokenTags && !isHashtagDiluted,
+        label: isHashtagDiluted ? 'Hashtag dilution (>15%)' : (`${hashtags.count} tag(s)` + (hashtags.count > 5 ? ' (Too many)' : (hashtags.hasBrokenTags ? ' (Broken)' : ' ✓'))),
+        status: hashtags.count <= 5 && !hashtags.hasBrokenTags && !isHashtagDiluted ? 'Optimal' : 'Needs Review'
+      },
+      tokenContext: {
+        isOptimal: !isSparseTokens && !hasMismatchedHook,
+        label: isSparseTokens ? 'Sparse text (<150 chars)' : (hasMismatchedHook ? 'Clickbait mismatch' : '360Brew token aligned ✓'),
+        status: (!isSparseTokens && !hasMismatchedHook) ? 'Optimal' : 'Needs Depth'
       },
       conversation: {
         hasQuestion: endsWithQuestion,
-        label: endsWithQuestion ? 'Discussion question included 💬' : 'No closing question',
-        status: endsWithQuestion ? 'Optimal' : 'Optional'
+        label: endsWithQuestion ? 'Discussion question included 💬 ✓' : 'No closing question (−5)',
+        status: endsWithQuestion ? 'Optimal' : 'Missing'
       }
     }
   };
@@ -399,6 +548,7 @@ function createEmptyAnalysis() {
         readability: { isOptimal: true, label: 'Ready', status: 'Optimal' },
         linkSafety: { isSafe: true, label: 'Clean', status: 'Protected' },
         hashtags: { isOptimal: true, label: '0 tags', status: 'Optimal' },
+        tokenContext: { isOptimal: true, label: 'Ready', status: 'Optimal' },
         conversation: { hasQuestion: false, label: 'None', status: 'Optional' }
       }
     }

@@ -82,6 +82,8 @@ const factorCommentStatus = document.getElementById('factor-comment-status');
 const factorCommentDetail = document.getElementById('factor-comment-detail');
 const factorHashStatus = document.getElementById('factor-hash-status');
 const factorHashDetail = document.getElementById('factor-hash-detail');
+const factorContextStatus = document.getElementById('factor-context-status');
+const factorContextDetail = document.getElementById('factor-context-detail');
 
 let lastFormulatedText = '';
 
@@ -538,6 +540,11 @@ function renderStats(audit) {
     if (factorCommentDetail) factorCommentDetail.textContent = eng.factors.conversation.label;
     if (factorHashStatus) factorHashStatus.textContent = eng.factors.hashtags.status;
     if (factorHashDetail) factorHashDetail.textContent = eng.factors.hashtags.label;
+    if (factorContextStatus && eng.factors.tokenContext) {
+      factorContextStatus.textContent = eng.factors.tokenContext.status;
+      factorContextStatus.className = eng.factors.tokenContext.isOptimal ? 'font-semibold text-emerald-600 text-[11px]' : 'font-semibold text-amber-600 text-[11px]';
+    }
+    if (factorContextDetail && eng.factors.tokenContext) factorContextDetail.textContent = eng.factors.tokenContext.label;
   }
 }
 

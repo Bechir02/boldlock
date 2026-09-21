@@ -235,7 +235,7 @@ export async function formulateWithAI(rawText, apiKey, options = {}) {
     throw new Error('Gemini API key is required. Get a free API key at aistudio.google.com.');
   }
 
-  const model = options.model || 'gemini-2.5-flash';
+  const model = options.model || 'gemini-3.6-flash';
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey.trim()}`;
 
   const systemInstruction = `You are an elite LinkedIn content architect and copy formatter.
