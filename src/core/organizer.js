@@ -10,7 +10,7 @@
  * Works 100% locally with rule-based algorithm, plus optional Gemini API integration.
  */
 
-import { applyStyle, toPlainAscii } from './unicode-map.js';
+import { applyStyle, toPlainAscii, renumberNumberedList } from './unicode-map.js';
 
 /**
  * Standard rule-based LinkedIn post structural organizer.
@@ -89,7 +89,8 @@ export function organizePostStructure(text, options = {}) {
     }
   }
 
-  return outputLines.join('\n');
+  const rawStructured = outputLines.join('\n');
+  return renumberNumberedList(rawStructured);
 }
 
 /**

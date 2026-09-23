@@ -45,11 +45,148 @@ export const BULLET_STYLES = {
   arrow: '➔ ',
   check: '✔ ',
   star: '★ ',
-  number: (index) => {
+  number: (index) => `${index + 1}. `,
+  keycap: (index) => {
     const keycaps = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟'];
     return keycaps[index] ? `${keycaps[index]} ` : `${index + 1}. `;
   }
 };
+
+export const LIST_PREFIX_REGEX = /^(\s*)(?:(?:[•➔✔✅★\-\*]|\d+[\.\)]|[𝟬-𝟵]+[\.\)]|(?:\d+\uFE0F?\u20E3|\uD83D\uDD1F|🔟))\s*)+/u;
+
+export function stripListPrefix(line) {
+  return line.replace(LIST_PREFIX_REGEX, '$1');
+}
+
+export function getListPrefixType(line) {
+  const trimmed = line.trimStart();
+  if (/^[•\-\*]\s+/u.test(trimmed)) return 'bullet';
+  if (/^➔\s+/u.test(trimmed)) return 'arrow';
+  if (/^[✔✅]\s+/u.test(trimmed)) return 'check';
+  if (/^★\s+/u.test(trimmed)) return 'star';
+  if (/^(?:\d+[\.\)]|[𝟬-𝟵]+[\.\)]|\d+\uFE0F?\u20E3|\uD83D\uDD1F|🔟)\s+/u.test(trimmed)) return 'number';
+  return null;
+}
+
+/**
+ * Toggles bullets on or off for multiline text blocks.
+ * If all non-empty lines already have the specified bullet type, it reverts them to plain text.
+ * Otherwise, it formats/switches each non-empty line to the target bullet style.
+ */
+export function toggleBullets(text, type = 'bullet') {
+  if (!text) return '';
+  const lines = text.split('\n');
+  const nonEmptyLines = lines.filter(l => l.trim().length > 0);
+
+  if (nonEmptyLines.length === 0) return text;
+
+  const allAlreadyHaveType = nonEmptyLines.every(l => getListPrefixType(l) === type);
+
+  if (allAlreadyHaveType) {
+    // TOGGLE OFF: revert back to default text without prefixes
+    return lines.map(line => stripListPrefix(line)).join('\n');
+  }
+
+  // APPLY BULLETS:
+  let itemIndex = 0;
+  return lines.map(line => {
+    if (!line.trim()) return line; // preserve blank lines, never bullet them!
+
+    const indent = line.match(/^(\s*)/)[1] || '';
+    const cleaned = stripListPrefix(line).trimStart();
+    let sym;
+    if (type === 'number') {
+      sym = typeof BULLET_STYLES.number === 'function' ? BULLET_STYLES.number(itemIndex) : `${itemIndex + 1}. `;
+      itemIndex++;
+    } else {
+      sym = BULLET_STYLES[type] || BULLET_STYLES.bullet;
+    }
+    return `${indent}${sym}${cleaned}`;
+  }).join('\n');
+}
+
+/**
+ * Automatically renumbers numbered list items (1, 2, 3...) when items are deleted or out of order.
+ * Works across both compact lists and numbered paragraphs. Supports ASCII, Unicode bold, and keycaps.
+ */
+export function renumberNumberedList(text) {
+  if (!text) return '';
+  const lines = text.split('\n');
+  let currentNum = 0;
+  let currentFormat = 'ascii';
+  let currentDelim = '. ';
+  let linesSinceLastItem = 0;
+
+  const BOLD_DIGITS = ['𝟬','𝟭','𝟮','𝟯','𝟰','𝟱','𝟲','𝟳','𝟴','𝟵'];
+  const toBoldDigits = (n) => String(n).split('').map(d => BOLD_DIGITS[parseInt(d, 10)] || d).join('');
+  const KEYCAPS = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟'];
+
+  return lines.map(line => {
+    const trimmed = line.trimStart();
+    const indent = line.substring(0, line.length - trimmed.length);
+
+    const asciiMatch = trimmed.match(/^(\d+)([\.\)]\s+)(.*)$/);
+    const boldMatch = trimmed.match(/^([𝟬-𝟵]+)([\.\)]\s+)(.*)$/u);
+    const keycapMatch = trimmed.match(/^(\d+\uFE0F?\u20E3|\uD83D\uDD1F|🔟)(\s+)(.*)$/u);
+
+    if (asciiMatch || boldMatch || keycapMatch) {
+      let detectedNum = 1;
+      let format = 'ascii';
+      let delim = '. ';
+      let rest = '';
+
+      if (asciiMatch) {
+        detectedNum = parseInt(asciiMatch[1], 10);
+        delim = asciiMatch[2];
+        rest = asciiMatch[3];
+        format = 'ascii';
+      } else if (boldMatch) {
+        const numStr = boldMatch[1].split('').map(c => {
+          const idx = BOLD_DIGITS.indexOf(c);
+          return idx !== -1 ? idx : c;
+        }).join('');
+        detectedNum = parseInt(numStr, 10);
+        delim = boldMatch[2];
+        rest = boldMatch[3];
+        format = 'bold';
+      } else if (keycapMatch) {
+        const raw = keycapMatch[1];
+        const idx = KEYCAPS.indexOf(raw);
+        detectedNum = idx !== -1 ? idx + 1 : 1;
+        delim = keycapMatch[2];
+        rest = keycapMatch[3];
+        format = 'keycap';
+      }
+
+      if (detectedNum === 1 || linesSinceLastItem > 6 || currentNum === 0) {
+        currentNum = 1;
+        currentFormat = format;
+        currentDelim = delim;
+      } else {
+        currentNum++;
+      }
+
+      linesSinceLastItem = 0;
+
+      let numPrefix;
+      if (currentFormat === 'bold') {
+        numPrefix = `${toBoldDigits(currentNum)}${currentDelim}`;
+      } else if (currentFormat === 'keycap') {
+        numPrefix = KEYCAPS[currentNum - 1] ? `${KEYCAPS[currentNum - 1]}${currentDelim}` : `${currentNum}${currentDelim}`;
+      } else {
+        numPrefix = `${currentNum}${currentDelim}`;
+      }
+
+      return `${indent}${numPrefix}${rest}`;
+    }
+
+    if (line.trim().length > 0) {
+      linesSinceLastItem++;
+    }
+
+    return line;
+  }).join('\n');
+}
 
 /**
  * Applies a specific Unicode style to a character or string.

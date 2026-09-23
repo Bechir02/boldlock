@@ -2,7 +2,7 @@
  * BoldLock — The LinkedIn Post Styling & Font Companion
  */
 
-import { applyStyle, toPlainAscii, toggleStyle, BULLET_STYLES } from '../core/unicode-map.js';
+import { applyStyle, toPlainAscii, toggleStyle, toggleBullets, renumberNumberedList, BULLET_STYLES } from '../core/unicode-map.js';
 import { preserveLineBreaks } from '../core/spacer.js';
 import { parseMarkdown, parseHtml } from '../core/parser.js';
 import { analyzePost } from '../core/linter.js';
@@ -102,8 +102,16 @@ function init() {
 // ─── Event Wiring ────────────────────────────────────────────────────
 function setupEvents() {
 
-  // Editor input
+  // Editor input (with auto-renumbering when list items are deleted or rearranged)
   editor.addEventListener('input', () => {
+    const renumbered = renumberNumberedList(editor.value);
+    if (renumbered !== editor.value) {
+      const selStart = editor.selectionStart;
+      const selEnd = editor.selectionEnd;
+      const diff = renumbered.length - editor.value.length;
+      editor.value = renumbered;
+      editor.setSelectionRange(Math.max(0, selStart + diff), Math.max(0, selEnd + diff));
+    }
     state.content = editor.value;
     state.foldExpanded = false;
     saveDraft();
@@ -371,15 +379,11 @@ function applyBullets(type) {
   let le = v.indexOf('\n', e);
   if (le === -1) le = v.length;
 
-  const lines = v.substring(ls, le).split('\n');
-  const result = lines.map((line, i) => {
-    const cleaned = line.replace(/^(\s*)([•➔✔★\-\*]|\d+️⃣|\d+\.)\s*/, '$1');
-    const sym = type === 'number' ? BULLET_STYLES.number(i) : (BULLET_STYLES[type] || BULLET_STYLES.bullet);
-    return `${sym}${cleaned}`;
-  }).join('\n');
+  const targetBlock = v.substring(ls, le);
+  const updatedBlock = toggleBullets(targetBlock, type);
 
-  editor.value = v.substring(0, ls) + result + v.substring(le);
-  editor.setSelectionRange(ls, ls + result.length);
+  editor.value = v.substring(0, ls) + updatedBlock + v.substring(le);
+  editor.setSelectionRange(ls, ls + updatedBlock.length);
   editor.focus();
   state.content = editor.value;
   saveDraft();

@@ -5,6 +5,9 @@ import {
   isStyledUnicode,
   isStyledWith,
   toggleStyle,
+  toggleBullets,
+  stripListPrefix,
+  renumberNumberedList,
   BULLET_STYLES
 } from '../src/core/unicode-map.js';
 import {
@@ -425,6 +428,72 @@ describe('BoldLock Algorithm v2 — Enhanced Engagement Scoring', () => {
       const audit = analyzePost(clickbaitPost);
       expect(audit.warnings.some(w => w.includes('Clickbait hook mismatch'))).toBe(true);
       expect(audit.engagement.factors.tokenContext.status).toBe('Needs Depth');
+    });
+  });
+
+  describe('Bullet Toggle & Auto-Renumbering Engine', () => {
+    it('toggles bullets on and off on double click', () => {
+      const plain = 'First line\nSecond line';
+      const bulleted = toggleBullets(plain, 'bullet');
+      expect(bulleted).toBe('• First line\n• Second line');
+
+      // Clicked second time -> reverts back to plain text!
+      const toggledOff = toggleBullets(bulleted, 'bullet');
+      expect(toggledOff).toBe('First line\nSecond line');
+    });
+
+    it('toggles check marks and numbers on and off', () => {
+      const items = 'Task 1\nTask 2';
+      const checked = toggleBullets(items, 'check');
+      expect(checked).toBe('✔ Task 1\n✔ Task 2');
+      expect(toggleBullets(checked, 'check')).toBe('Task 1\nTask 2');
+
+      const numbered = toggleBullets(items, 'number');
+      expect(numbered).toBe('1. Task 1\n2. Task 2');
+      expect(toggleBullets(numbered, 'number')).toBe('Task 1\nTask 2');
+    });
+
+    it('cleans up stacked repeated prefixes like 🔟🔟🔟 or 1️⃣ 1.', () => {
+      expect(stripListPrefix('🔟🔟🔟 4. Career Moves')).toBe('Career Moves');
+      expect(stripListPrefix('1️⃣ 1. Skills vs. Communication')).toBe('Skills vs. Communication');
+      expect(stripListPrefix('• 1. Item')).toBe('Item');
+      expect(stripListPrefix('✔ Check this')).toBe('Check this');
+    });
+
+    it('preserves blank lines and does not bullet empty lines', () => {
+      const withBlanks = 'First item\n\nSecond item';
+      const result = toggleBullets(withBlanks, 'bullet');
+      expect(result).toBe('• First item\n\n• Second item');
+    });
+
+    it('auto-adjusts and renumbers lists when an item is deleted (1, 2, 4 -> 1, 2, 3)', () => {
+      const listWithGap = [
+        '1. Skills vs. Communication',
+        'Technical skills only get you so far.',
+        '',
+        '2. Visibility',
+        'Document your work.',
+        '',
+        '4. Career Moves',
+        'Switching jobs every 2 years is fine.',
+        '',
+        '5. Depth over Side Projects',
+        'Solve hard problems.'
+      ].join('\n');
+
+      const renumbered = renumberNumberedList(listWithGap);
+      expect(renumbered).toContain('1. Skills vs. Communication');
+      expect(renumbered).toContain('2. Visibility');
+      expect(renumbered).toContain('3. Career Moves'); // Adjusted from 4!
+      expect(renumbered).toContain('4. Depth over Side Projects'); // Adjusted from 5!
+    });
+
+    it('auto-renumbers bold and keycap numbered lists', () => {
+      const boldWithGap = '𝟭. First\n𝟮. Second\n𝟰. Fourth';
+      expect(renumberNumberedList(boldWithGap)).toBe('𝟭. First\n𝟮. Second\n𝟯. Fourth');
+
+      const keycapsWithGap = '1️⃣ First\n2️⃣ Second\n4️⃣ Fourth';
+      expect(renumberNumberedList(keycapsWithGap)).toBe('1️⃣ First\n2️⃣ Second\n3️⃣ Fourth');
     });
   });
 });
