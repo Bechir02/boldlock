@@ -29,7 +29,7 @@ src/
 
 1. **Clone the repository**:
    ```bash
-   git clone https://github.com/Bechir02/boldlock.git
+   git clone https://github.com/zribibecher/boldlock.git
    cd boldlock
    ```
 
