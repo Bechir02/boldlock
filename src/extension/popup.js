@@ -3,10 +3,11 @@
  * Lightweight, fast popup powered by the zero-dependency ScrollStop core engine.
  */
 
-import { applyStyle, toPlainAscii, toggleStyle } from '../core/unicode-map.js';
-import { preserveLineBreaks } from '../core/spacer.js';
-import { parseMarkdown, parseHtml } from '../core/parser.js';
-import { analyzePost } from '../core/linter.js';
+import { applyStyle, toPlainAscii, toggleStyle, toggleBullets, renumberNumberedList } from './core/unicode-map.js';
+import { preserveLineBreaks } from './core/spacer.js';
+import { parseMarkdown, parseHtml } from './core/parser.js';
+import { analyzePost } from './core/linter.js';
+import { organizePostStructure } from './core/organizer.js';
 
 const editor = document.getElementById('popup-editor');
 const statChars = document.getElementById('stat-chars');
@@ -15,8 +16,10 @@ const statWords = document.getElementById('stat-words');
 const hookAlert = document.getElementById('hook-alert');
 const btnCopy = document.getElementById('btn-copy-popup');
 const btnUnformat = document.getElementById('btn-unformat');
+const btnOrganize = document.getElementById('btn-organize-popup');
 const toast = document.getElementById('popup-toast');
 
+// Restore previous popup state
 if (typeof chrome !== 'undefined' && chrome.storage?.local) {
   chrome.storage.local.get(['scrollstop_popup_text', 'boldlock_popup_text'], (result) => {
     const text = result.scrollstop_popup_text || result.boldlock_popup_text;
@@ -27,14 +30,23 @@ if (typeof chrome !== 'undefined' && chrome.storage?.local) {
   });
 }
 
+// Auto-renumbering on input
 editor.addEventListener('input', () => {
+  const renumbered = renumberNumberedList(editor.value);
+  if (renumbered !== editor.value) {
+    const selStart = editor.selectionStart;
+    const selEnd = editor.selectionEnd;
+    const diff = renumbered.length - editor.value.length;
+    editor.value = renumbered;
+    editor.setSelectionRange(Math.max(0, selStart + diff), Math.max(0, selEnd + diff));
+  }
   updateStats();
   if (typeof chrome !== 'undefined' && chrome.storage?.local) {
     chrome.storage.local.set({ scrollstop_popup_text: editor.value });
   }
 });
 
-// Smart paste handler
+// Smart rich paste handler
 editor.addEventListener('paste', (e) => {
   const clipboardData = e.clipboardData;
   if (!clipboardData) return;
@@ -83,10 +95,10 @@ document.querySelectorAll('[data-style]').forEach(btn => {
   });
 });
 
-// Bullets
+// Bullets & numbers with double-click toggle
 document.querySelectorAll('[data-bullet]').forEach(btn => {
   btn.addEventListener('click', () => {
-    const bullet = btn.getAttribute('data-bullet');
+    const type = btn.getAttribute('data-bullet');
     const start = editor.selectionStart;
     const end = editor.selectionEnd;
     const val = editor.value;
@@ -96,8 +108,7 @@ document.querySelectorAll('[data-bullet]').forEach(btn => {
     if (lineEnd === -1) lineEnd = val.length;
 
     const selected = val.substring(lineStart, lineEnd);
-    const lines = selected.split('\n').map(l => `${bullet}${l.replace(/^([•➔✔\-\*]|\d+\.)\s*/, '')}`);
-    const replacement = lines.join('\n');
+    const replacement = toggleBullets(selected, type);
 
     editor.value = val.substring(0, lineStart) + replacement + val.substring(lineEnd);
     editor.setSelectionRange(lineStart, lineStart + replacement.length);
@@ -106,16 +117,33 @@ document.querySelectorAll('[data-bullet]').forEach(btn => {
   });
 });
 
-// Unformat
-btnUnformat.addEventListener('click', () => {
+// Auto-Format
+btnOrganize?.addEventListener('click', () => {
+  const current = editor.value;
+  if (!current.trim()) {
+    showToast('Type or paste text first!');
+    return;
+  }
+  const organized = organizePostStructure(current);
+  editor.value = organized;
+  editor.focus();
+  updateStats();
+  if (typeof chrome !== 'undefined' && chrome.storage?.local) {
+    chrome.storage.local.set({ scrollstop_popup_text: organized });
+  }
+  showToast('Formatted for LinkedIn! ⚡');
+});
+
+// Unformat back to ASCII
+btnUnformat?.addEventListener('click', () => {
   editor.value = toPlainAscii(editor.value);
   editor.focus();
   updateStats();
   showToast('Reverted to plain text');
 });
 
-// Copy for LinkedIn
-btnCopy.addEventListener('click', async () => {
+// Copy for LinkedIn with zero-width line breaks
+btnCopy?.addEventListener('click', async () => {
   const text = preserveLineBreaks(editor.value);
   try {
     await navigator.clipboard.writeText(text);
@@ -157,7 +185,7 @@ function showToast(msg) {
   toast.style.display = 'block';
   setTimeout(() => {
     toast.style.display = 'none';
-  }, 2500);
+  }, 2200);
 }
 
 updateStats();

@@ -163,26 +163,34 @@
 <body>
   <div class="header">
     <div class="logo-area">
-      <div class="logo-icon">S</div>
+      <div class="logo-icon" style="background: linear-gradient(135deg, #0a66c2, #004182); padding: 3px;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 3v9m0 0l-3-3m3 3l3-3" opacity="0.6"/>
+          <line x1="4" y1="16" x2="20" y2="16" stroke-width="3"/>
+          <circle cx="12" cy="16" r="1.5" fill="#f59e0b" stroke="none"/>
+        </svg>
+      </div>
       <div>
-        <span class="brand-title">ScrollStop</span>
+        <span class="brand-title" style="font-weight: 800; letter-spacing: -0.02em;">Scroll<span style="color: #38bdf8;">Stop</span></span>
       </div>
     </div>
-    <span style="font-size: 11px; color: #38bdf8;">v1.3</span>
+    <span style="font-size: 11px; color: #94a3b8; font-weight: 600;">v1.3</span>
   </div>
 
   <!-- Formatting Toolbar -->
   <div class="toolbar">
-    <button class="btn" data-style="sansBold">𝗕 Bold</button>
-    <button class="btn" data-style="serifBold">𝐁 Serif</button>
-    <button class="btn" data-style="italic">𝘐 Italic</button>
-    <button class="btn" data-style="monospace">𝙲 Code</button>
-    <button class="btn" data-style="underline">U̲ Underline</button>
-    <button class="btn" data-style="strike">S̶ Strike</button>
-    <button class="btn" data-bullet="• ">•</button>
-    <button class="btn" data-bullet="➔ ">➔</button>
-    <button class="btn" data-bullet="✔ ">✔</button>
-    <button class="btn" id="btn-unformat" style="margin-left: auto;">Aa</button>
+    <button class="btn" data-style="sansBold" title="Bold (Cmd+B)">𝗕 Bold</button>
+    <button class="btn" data-style="serifBold" title="Serif Bold">𝐁</button>
+    <button class="btn" data-style="italic" title="Italic">𝘐</button>
+    <button class="btn" data-style="monospace" title="Code">𝙲</button>
+    <button class="btn" data-style="underline" title="Underline">U̲</button>
+    <button class="btn" data-style="strike" title="Strikethrough">S̶</button>
+    <button class="btn" data-bullet="bullet" title="Bullet List">•</button>
+    <button class="btn" data-bullet="arrow" title="Arrow List">➔</button>
+    <button class="btn" data-bullet="check" title="Checkmark List">✔</button>
+    <button class="btn" data-bullet="number" title="Numbered List">1.</button>
+    <button class="btn" id="btn-organize-popup" style="background: #1e3a5f; color: #38bdf8; border-color: #0284c7;" title="Auto-Format into LinkedIn paragraphs, headers and lists">⚡ Format</button>
+    <button class="btn" id="btn-unformat" style="margin-left: auto;" title="Revert to plain ASCII">Aa</button>
   </div>
 
   <textarea id="popup-editor" placeholder="What do you want to talk about?"></textarea>
