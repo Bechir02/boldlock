@@ -4,16 +4,16 @@
 
 @layer base {
   body {
-    @apply bg-[#f4f2ee] text-gray-900 font-sans antialiased min-h-screen;
+    @apply bg-slate-50 text-slate-900 font-sans antialiased min-h-screen;
   }
 }
 
 /* LinkedIn Typography */
 .linkedin-font {
   font-family: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", "Fira Sans", Ubuntu, Oxygen, "Oxygen Sans", Cantarell, "Droid Sans", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Lucida Grande", Helvetica, Arial, sans-serif;
-  line-height: 1.42857;
-  font-size: 14px;
-  color: rgba(0, 0, 0, 0.9);
+  line-height: 1.45;
+  font-size: 14.5px;
+  color: #0f172a;
 }
 
 /* Smooth Custom Scrollbar */

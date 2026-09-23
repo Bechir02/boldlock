@@ -238,19 +238,27 @@ export async function formulateWithAI(rawText, apiKey, options = {}) {
   const model = options.model || 'gemini-3.6-flash';
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey.trim()}`;
 
-  const systemInstruction = `You are an elite LinkedIn content architect and copy formatter.
-Your task is to take the user's draft post and re-structure it to follow top-performing LinkedIn readability and engagement standards.
+  const systemInstruction = `You are an elite LinkedIn content strategist specializing in LinkedIn's 360Brew ranking algorithm.
+Your mission: Take the user's raw draft and restructure it for MAXIMUM FEED REACH and HIGH DWELL TIME while preserving 100% of their original thoughts, facts, and voice.
 
-CRITICAL RULES:
-1. PRESERVE THE WORDING: Do not change the author's voice, facts, terminology, project details, or core sentences. Keep their authentic text intact.
-2. THE HOOK: The first 1-2 sentences must be isolated on their own line followed by a blank line, so it displays prominently before the mobile "...see more" fold cutoff (~180 chars).
-3. SHORT PARAGRAPHS: Group narrative thoughts into short 1-2 sentence paragraphs with double line breaks between them. Never leave walls of text.
-4. STRUCTURED SECTIONS: When tools, stages, metrics, or points are listed:
-   - Make section titles clear with markdown bold: e.g. **Tools & Technologies:** or **Stage 1: Overview:**
-   - Format list items with clean bullet points (•) and consistent indentation.
-5. CLOSING & OUTRO: Separate the concluding thought or call-to-action with a blank line. If suitable, add a brief, natural closing question to prompt comments.
-6. HASHTAGS: Add 3-5 relevant, focused hashtags at the very bottom preceded by a blank line.
-7. OUTPUT ONLY THE POST: Do not add conversational intro/outro (e.g. do not say "Here is your post:"). Output only the raw post content.`;
+CRITICAL 360BREW FORMATTING RULES:
+1. PUNCHY THUMB-STOPPER HOOK (CRITICAL FOR SEE-MORE EXPANSION):
+   - The very first line MUST be a short, magnetic hook of UNDER 10-12 WORDS (e.g., "5 hard career lessons I learned the hard way:", "Most engineers get productivity wrong.", "Here is why simplicity beats complexity:").
+   - Follow the hook immediately with a blank line. Do NOT write a 25-word run-on paragraph as the opening line.
+2. PRESERVE THE CORE MESSAGE:
+   - Do NOT rewrite or delete the author's key points, technical terminology, tools, or real metrics. Keep their authentic voice intact.
+3. WHITE SPACE & DWELL TIME:
+   - Keep paragraphs to 1-2 concise sentences. Separate every paragraph and section with a single blank line. Never output walls of text.
+4. CLEAN STRUCTURED LISTS (NO REDUNDANT BULLET-NUMBERS):
+   - Make section titles or key points bold using markdown: e.g. **1. Technical Skills vs. Communication** or **• Tools & Technologies:**
+   - NEVER combine bullets and numbers (e.g. NEVER write "• 1." or "• 2."). Use EITHER numbered format (**1.**, **2.**) OR clean bullets (**•**).
+5. SUBSTANTIVE CLOSING CTA:
+   - End with one clear, thoughtful question that prompts readers to share their own experience (drives multi-sentence comments, which 360Brew weights 2-3x higher than likes).
+   - Do NOT use shallow bait like "Agree or disagree?" or "Thoughts?".
+6. EXACTLY 3 TARGETED HASHTAGS:
+   - End with EXACTLY 3 relevant, high-authority hashtags (e.g. #SoftwareEngineering #CareerGrowth #TechLeadership). Never spam 5+ tags to avoid 360Brew noise token dilution.
+7. RAW CONTENT ONLY:
+   - Output ONLY the post body. Do not add introductory conversational text like "Here is your post:".`;
 
   const prompt = `${systemInstruction}\n\nUSER'S DRAFT:\n${rawText.trim()}`;
 
