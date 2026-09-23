@@ -12,7 +12,7 @@
 **Engineered to halt the scroll and maximize LinkedIn feed reach.**  
 Format rich mathematical Unicode, auto-adjust numbered lists, optimize post layout against LinkedIn's 360Brew 150B MoE ranking model (`arXiv:2501.16450`), preserve mobile blank lines, and simulate the exact mobile "...see more" cutoff.
 
-[Live Demo](https://zribibecher.github.io/boldlock/) • [Key Features](#-key-features) • [Free Deployment](#-100-free-live-deployment) • [Quickstart](#-quickstart) • [Architecture](#-architecture) • [Core API](#-core-engine-api) • [Contributing](#-contributing)
+[Live Demo](https://zribibecher.github.io/scrollstop/) • [Key Features](#-key-features) • [Free Deployment](#-100-free-live-deployment) • [Quickstart](#-quickstart) • [Architecture](#-architecture) • [Core API](#-core-engine-api) • [Contributing](#-contributing)
 
 </div>
 
@@ -94,8 +94,8 @@ The repository includes an automated GitHub Actions deployment workflow in [`.gi
 ### 1. Run the Studio Locally
 ```bash
 # Clone the repository
-git clone https://github.com/zribibecher/boldlock.git
-cd boldlock
+git clone https://github.com/zribibecher/scrollstop.git
+cd scrollstop
 
 # Install dependencies
 npm install

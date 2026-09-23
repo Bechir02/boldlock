@@ -29,8 +29,8 @@ src/
 
 1. **Clone the repository**:
    ```bash
-   git clone https://github.com/zribibecher/boldlock.git
-   cd boldlock
+   git clone https://github.com/zribibecher/scrollstop.git
+   cd scrollstop
    ```
 
 2. **Install dependencies**:
