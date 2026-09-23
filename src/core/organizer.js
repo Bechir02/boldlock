@@ -256,8 +256,9 @@ CRITICAL 360BREW FORMATTING RULES:
    - Do NOT use shallow bait like "Agree or disagree?" or "Thoughts?".
 6. EXACTLY 3 TARGETED HASHTAGS:
    - End with EXACTLY 3 relevant, high-authority hashtags (e.g. #SoftwareEngineering #CareerGrowth #TechLeadership). Never spam 5+ tags to avoid 360Brew noise token dilution.
-7. RAW CONTENT ONLY:
-   - Output ONLY the post body. Do not add introductory conversational text like "Here is your post:".`;
+7. RAW CONTENT ONLY (NO SOURCES OR CITATIONS):
+   - Output ONLY the post body. Do not add introductory conversational text like "Here is your post:".
+   - NEVER add citations, paper references, footnotes, or lines like "Source: ...".`;
 
   const prompt = `${systemInstruction}\n\nUSER'S DRAFT:\n${rawText.trim()}`;
 
