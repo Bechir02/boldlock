@@ -1,5 +1,5 @@
 /**
- * PostCraft - Algorithm, SEO & Readability Health Linter
+ * ScrollStop - Algorithm, SEO & Readability Health Linter
  * Protects LinkedIn reach, searchability (SEO), and screen-reader accessibility.
  */
 

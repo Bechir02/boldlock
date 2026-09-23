@@ -29,7 +29,7 @@ import {
   organizePostStructure
 } from '../src/core/organizer.js';
 
-describe('PostCraft Core - Unicode Map Engine', () => {
+describe('ScrollStop Core - Unicode Map Engine', () => {
   it('converts ASCII text to Sans-Serif Bold', () => {
     const input = 'PostCraft 2026';
     const styled = applyStyle(input, 'sansBold');
@@ -123,7 +123,7 @@ describe('PostCraft Core - Unicode Map Engine', () => {
   });
 });
 
-describe('PostCraft Core - Spacing Engine', () => {
+describe('ScrollStop Core - Spacing Engine', () => {
   it('preserves blank lines by injecting invisible zero-width spaces', () => {
     const input = 'First paragraph.\n\nSecond paragraph.\n\n\nThird paragraph.';
     const preserved = preserveLineBreaks(input);
@@ -153,7 +153,7 @@ describe('PostCraft Core - Spacing Engine', () => {
   });
 });
 
-describe('PostCraft Core - Parser Engine', () => {
+describe('ScrollStop Core - Parser Engine', () => {
   it('converts markdown syntax to Unicode', () => {
     const md = '**Bold Title**\n*Italic text*\n~~Old text~~\n__Underlined__\n`const x = 1;`';
     const parsed = parseMarkdown(md);
@@ -184,7 +184,7 @@ describe('PostCraft Core - Parser Engine', () => {
   });
 });
 
-describe('PostCraft Core - Health Linter Engine', () => {
+describe('ScrollStop Core - Health Linter Engine', () => {
   it('accurately counts characters, words, and reading time', () => {
     const text = 'Here is a strong hook for your audience.\n\nDelivering value consistently is key.';
     const audit = analyzePost(text);
@@ -253,7 +253,7 @@ describe('PostCraft Core - Health Linter Engine', () => {
   });
 });
 
-describe('BoldLock Core - Post Structure & Organization Engine', () => {
+describe('ScrollStop Core - Post Structure & Organization Engine', () => {
   it('correctly organizes raw drafts into standard LinkedIn paragraphs, bolded headers, and bullets', () => {
     const rawDraft = [
       "I’m excited to share a new data science project I’ve been working on, combining my passion for football with data.",
@@ -316,7 +316,7 @@ describe('BoldLock Core - Post Structure & Organization Engine', () => {
   });
 });
 
-describe('BoldLock Algorithm v2 — Enhanced Engagement Scoring', () => {
+describe('ScrollStop Algorithm v2 — Enhanced Engagement Scoring', () => {
   it('rewards short punchy hooks with a bonus', () => {
     const post = 'Stop doing this.\n\nMost people think productivity is about doing more. It is not.\n\nWhat is your take?';
     const audit = analyzePost(post);

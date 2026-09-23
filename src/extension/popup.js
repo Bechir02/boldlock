@@ -1,6 +1,6 @@
 /**
- * BoldLock Chrome Extension Popup Logic
- * Lightweight, fast popup powered by the zero-dependency BoldLock core.
+ * ScrollStop Chrome Extension Popup Logic
+ * Lightweight, fast popup powered by the zero-dependency ScrollStop core engine.
  */
 
 import { applyStyle, toPlainAscii, toggleStyle } from '../core/unicode-map.js';
@@ -17,11 +17,11 @@ const btnCopy = document.getElementById('btn-copy-popup');
 const btnUnformat = document.getElementById('btn-unformat');
 const toast = document.getElementById('popup-toast');
 
-// Restore previous popup state if saved
-if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
-  chrome.storage.local.get(['boldlock_popup_text'], (result) => {
-    if (result.boldlock_popup_text) {
-      editor.value = result.boldlock_popup_text;
+if (typeof chrome !== 'undefined' && chrome.storage?.local) {
+  chrome.storage.local.get(['scrollstop_popup_text', 'boldlock_popup_text'], (result) => {
+    const text = result.scrollstop_popup_text || result.boldlock_popup_text;
+    if (text) {
+      editor.value = text;
       updateStats();
     }
   });
@@ -29,8 +29,8 @@ if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
 
 editor.addEventListener('input', () => {
   updateStats();
-  if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
-    chrome.storage.local.set({ boldlock_popup_text: editor.value });
+  if (typeof chrome !== 'undefined' && chrome.storage?.local) {
+    chrome.storage.local.set({ scrollstop_popup_text: editor.value });
   }
 });
 

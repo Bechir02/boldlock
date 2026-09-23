@@ -1,5 +1,5 @@
 /**
- * BoldLock — The LinkedIn Post Styling & Font Companion
+ * ScrollStop — LinkedIn Post Styling & Algorithm Reach Studio
  */
 
 import { applyStyle, toPlainAscii, toggleStyle, toggleBullets, renumberNumberedList, BULLET_STYLES } from '../core/unicode-map.js';
@@ -89,7 +89,7 @@ let lastFormulatedText = '';
 
 // ─── Init ────────────────────────────────────────────────────────────
 function init() {
-  const savedDraft = localStorage.getItem('boldlock_draft');
+  const savedDraft = localStorage.getItem('scrollstop_draft') || localStorage.getItem('boldlock_draft');
   if (savedDraft) {
     state.content = savedDraft;
     editor.value = savedDraft;
@@ -197,7 +197,7 @@ function setupEvents() {
 
   // AI Formulate Modal Open/Close
   btnAiFormulate?.addEventListener('click', () => {
-    const savedKey = localStorage.getItem('boldlock_gemini_key') || '';
+    const savedKey = localStorage.getItem('scrollstop_gemini_key') || localStorage.getItem('boldlock_gemini_key') || '';
     if (aiApiKey) aiApiKey.value = savedKey;
     modalAiFormulate?.classList.remove('hidden');
     modalAiFormulate?.classList.add('flex');
@@ -226,7 +226,7 @@ function setupEvents() {
 
   // Gemini API Key auto-save
   aiApiKey?.addEventListener('change', () => {
-    localStorage.setItem('boldlock_gemini_key', aiApiKey.value.trim());
+    localStorage.setItem('scrollstop_gemini_key', aiApiKey.value.trim());
   });
 
   // Run Gemini AI Formulate
@@ -242,7 +242,7 @@ function setupEvents() {
       aiApiKey?.focus();
       return;
     }
-    localStorage.setItem('boldlock_gemini_key', key);
+    localStorage.setItem('scrollstop_gemini_key', key);
 
     aiSpinner?.classList.remove('hidden');
     if (aiBtnText) aiBtnText.textContent = 'Formulating...';
@@ -430,7 +430,7 @@ function endIndex(str, idx) {
 }
 
 function saveDraft() {
-  localStorage.setItem('boldlock_draft', state.content);
+  localStorage.setItem('scrollstop_draft', state.content);
   statAutosave.textContent = 'Saved';
 }
 

@@ -1,40 +1,36 @@
-# Contributing to PostCraft
+# Contributing to ScrollStop
 
-Thank you for your interest in contributing to **PostCraft**! PostCraft is an open-source, community-driven tool designed to give creators premium LinkedIn post formatting, feed simulation, and SEO auditing without expensive subscription walls.
-
----
-
-## Code of Conduct
-
-We are committed to providing a welcoming, inclusive, and harassment-free experience for everyone. Please be respectful and constructive in all issues, pull requests, and discussions.
+Thank you for your interest in contributing to **ScrollStop**! ScrollStop is an open-source, community-driven tool designed to give creators premium LinkedIn post formatting, feed simulation, and 360Brew algorithm auditing without expensive paywalls or subscription fees.
 
 ---
 
-## Architecture Overview
+## 🏛️ Architecture Overview
 
-PostCraft is organized into three clean layers:
+ScrollStop is organized into three clean layers:
 
 ```text
 src/
 ├── core/               # Zero-dependency engine (platform agnostic)
-│   ├── unicode-map.js  # Bidirectional mathematical Unicode & bullet mappings
+│   ├── unicode-map.js  # Bidirectional mathematical Unicode, bullet toggles & auto-renumbering
 │   ├── parser.js       # Markdown & rich HTML paste engine
 │   ├── spacer.js       # Mobile blank-line preservation (\u200B injection)
-│   └── linter.js       # SEO density, cutoff calculator & health metrics
+│   ├── linter.js       # 360Brew algorithm rules, cutoff calculator & health metrics
+│   ├── organizer.js    # Rule-based auto-format & Gemini 360Brew AI formulation
+│   └── index.js        # Core module exports
 ├── web/                # High-utility studio web application (Vite + Tailwind)
 └── extension/          # Manifest V3 Chrome Extension
 ```
 
-> **Design Principle**: `src/core/` must remain **100% zero-dependency**. It can be imported in Node, browsers, service workers, or edge runtimes without bundler polyfills.
+> ⚠️ **Core Principle**: `src/core/` MUST remain **100% zero-dependency**. It must run seamlessly in Node.js, browsers, web workers, service workers, and Edge runtimes.
 
 ---
 
-## Development Setup
+## 💻 Local Development Setup
 
 1. **Clone the repository**:
    ```bash
-   git clone https://github.com/your-username/linkedin-post-styler.git
-   cd linkedin-post-styler
+   git clone https://github.com/Bechir02/boldlock.git
+   cd boldlock
    ```
 
 2. **Install dependencies**:
@@ -52,44 +48,48 @@ src/
    ```bash
    npm test
    ```
+   Always ensure all tests pass before opening a Pull Request.
 
 ---
 
-## How to Add a New Unicode Style
+## 🛠️ Common Contribution Guides
 
-To contribute a new Unicode font style (e.g., Script, Double-Struck / Blackboard Bold, Gothic / Fraktur):
+### 1. Adding a New Unicode Style
+1. Open [`src/core/unicode-map.js`](src/core/unicode-map.js).
+2. Add code point offset rules to `UNICODE_RANGES`.
+3. Add any unique character exceptions to `UNICODE_RANGES[style].exceptions`.
+4. Add unit test assertions in [`tests/core.test.js`](tests/core.test.js) verifying:
+   - Forward conversion (`applyStyle`).
+   - Bidirectional reverse conversion (`toPlainAscii`).
+5. Add the corresponding button in [`src/web/index.html`](src/web/index.html) and [`src/extension/popup.html`](src/extension/popup.html).
 
-1. Open `src/core/unicode-map.js`.
-2. Add the code point offsets to `UNICODE_RANGES`:
-   ```javascript
-   doubleStruck: {
-     upper: 0x1D538 - 65,  // 𝔸-ℤ
-     lower: 0x1D552 - 97,  // 𝕒-𝕫
-     digit: 0x1D7D8 - 48   // 𝟘-𝟡
-   }
+### 2. Updating 360Brew Algorithm Rules
+1. Reference verified research and upstream LinkedIn engineering papers (e.g. `arXiv:2501.16450`).
+2. Add rule checks inside `analyzePost()` in [`src/core/linter.js`](src/core/linter.js).
+3. Update the factor badges in the studio's Algorithm Coach modal in [`src/web/index.html`](src/web/index.html).
+4. Add comprehensive test coverage in [`tests/core.test.js`](tests/core.test.js).
+
+### 3. Enhancing the Web Studio or Chrome Extension
+- Web UI uses **Tailwind CSS**. Modify styles in `src/web/style.css` or class utilities in `src/web/index.html`.
+- Extension code lives in `src/extension/`. Test locally by loading `src/extension` as an unpacked extension in `chrome://extensions`.
+
+---
+
+## 📋 Pull Request Guidelines
+
+1. **Create a feature branch**:
+   ```bash
+   git checkout -b feat/your-feature-name
    ```
-3. Ensure any Unicode standard exceptions are noted (e.g. `C`, `H`, `N`, `P`, `Q`, `R`, `Z` in double-struck have specific code points in the BMP).
-4. Add the style button to `src/web/index.html` and `src/extension/popup.html`.
-5. Add unit test assertions in `tests/core.test.js` verifying:
-   - Proper conversion
-   - Bidirectional plain ASCII reverse conversion (`toPlainAscii`)
-6. Run `npm test` to ensure all tests pass.
-
----
-
-## Pull Request Checklist
-
-Before submitting a pull request, please verify:
-
-- [ ] All unit tests pass: `npm test`
-- [ ] Production build succeeds without errors: `npm run build`
-- [ ] No external dependencies were added to `src/core/`
-- [ ] Commit messages are clear and follow [Conventional Commits](https://www.conventionalcommits.org/) (e.g., `feat: add double-struck font style`, `fix: correct mobile cutoff calculation`).
-
----
-
-## Reporting Issues & Requesting Features
-
-Please use GitHub Issues to report bugs or request features:
-- **Bug reports**: Include your browser version, sample input text, and expected vs. actual behavior.
-- **Feature requests**: Describe the creator use case and why it benefits LinkedIn post distribution or readability.
+2. **Keep commits focused and semantic**:
+   - `feat:` new feature or capability
+   - `fix:` bug fix or correction
+   - `docs:` documentation updates
+   - `test:` test additions or improvements
+   - `refactor:` code reorganization without functional changes
+3. **Verify tests and build**:
+   ```bash
+   npm test
+   npm run build
+   ```
+4. **Submit your Pull Request** with a concise description of what changed and test results.

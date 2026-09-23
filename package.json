@@ -1,7 +1,7 @@
 {
-  "name": "boldlock",
-  "version": "1.2.0",
-  "description": "The LinkedIn Post Formatter, 360Brew Health Linter & Live Studio",
+  "name": "scrollstop",
+  "version": "1.3.0",
+  "description": "ScrollStop – LinkedIn Post Formatter, 360Brew Algorithm Health Studio & Live Feed Simulator",
   "type": "module",
   "main": "src/core/index.js",
   "module": "src/core/index.js",
@@ -21,7 +21,7 @@
     "markdown-converter",
     "open-source"
   ],
-  "author": "PostCraft Contributors",
+  "author": "ScrollStop Contributors",
   "license": "MIT",
   "devDependencies": {
     "autoprefixer": "^10.4.20",

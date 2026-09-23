@@ -1,10 +1,6 @@
 /**
- * PostCraft - Spacer Engine
+ * ScrollStop - Spacer Engine
  * Preserves LinkedIn line breaks and paragraph spacing across desktop and mobile.
- *
- * Problem: LinkedIn's post feed automatically collapses consecutive blank lines (\n\n),
- * crushing paragraph separation and hurting mobile readability.
- * Solution: Inject an invisible zero-width character (\u200B) on empty lines.
  */
 
 export const INVISIBLE_SPACE = '\u200B'; // Zero-Width Space

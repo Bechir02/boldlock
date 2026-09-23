@@ -1,5 +1,5 @@
 /**
- * PostCraft - Unicode Map Engine
+ * ScrollStop - Unicode Map Engine
  * Zero-dependency mathematical and decorative Unicode mappings for LinkedIn.
  */
 

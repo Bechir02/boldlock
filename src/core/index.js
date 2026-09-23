@@ -1,6 +1,6 @@
 /**
- * PostCraft Core Engine
- * Zero-dependency LinkedIn post formatter, parser, spacer & SEO linter.
+ * ScrollStop Core Engine
+ * Zero-dependency LinkedIn post formatter, parser, spacer & 360Brew linter.
  */
 
 export * from './unicode-map.js';

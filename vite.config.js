@@ -3,7 +3,7 @@ import { resolve } from 'path';
 
 export default defineConfig({
   root: 'src/web',
-  base: '/boldlock/',
+  base: './',
   build: {
     outDir: '../../dist',
     emptyOutDir: true,

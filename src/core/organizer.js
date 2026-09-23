@@ -1,13 +1,11 @@
 /**
- * BoldLock - Post Structure & Organization Engine
- * Formulates raw drafts into high-performing LinkedIn posts following proven structure standards:
- * - 1-2 line scroll-stopping Hook before the fold
+ * ScrollStop - Post Structure & Organization Engine
+ * Formulates raw drafts into high-performing LinkedIn posts following 360Brew standards:
+ * - 1-2 line scroll-stopping hook before the fold
  * - Short, readable paragraphs (1-2 sentences with breathing room)
  * - Bolded section headers (sansBold)
- * - Clean bulleted lists
+ * - Clean bulleted lists & auto-renumbering
  * - Engaging closing & call-to-action
- * 
- * Works 100% locally with rule-based algorithm, plus optional Gemini API integration.
  */
 
 import { applyStyle, toPlainAscii, renumberNumberedList } from './unicode-map.js';

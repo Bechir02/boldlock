@@ -1,5 +1,5 @@
 /**
- * BoldLock - Parser Engine
+ * ScrollStop - Parser Engine
  * Handles rich text formatting and Markdown syntax conversion into LinkedIn-safe Unicode text.
  */
 
